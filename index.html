@@ -1,0 +1,1207 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>大三元農場 — 原物料叫料統計系統</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;700;900&family=JetBrains+Mono:wght@300;400;600&family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+html { font-size: 15px; scroll-behavior: smooth; }
+:root {
+  --green:#22c55e; --green-glow:rgba(34,197,94,0.18);
+  --amber:#f59e0b; --red:#ef4444; --cyan:#06b6d4; --blue:#3b82f6;
+  --orange:#f97316;
+  --r:7px; --rl:11px;
+}
+body.theme-dark   { --bg:#0a0a0a;--bg2:#111;--bg3:#181818;--bg4:#202020;--sf:#1a1a1a;--bd:#2e2e2e;--bd2:#3a3a3a;--tx:#e8e8e8;--tx2:#a0a0a0;--tx3:#606060;--hbg:rgba(10,10,10,.96);--ttl:#fff;--ibg:#111; }
+body.theme-forest { --bg:#0b1a0d;--bg2:#0f2012;--bg3:#132616;--bg4:#172d1b;--sf:#162c1a;--bd:#234d29;--bd2:#2e6334;--tx:#d4f0d8;--tx2:#8abf8e;--tx3:#4a7a4f;--hbg:rgba(11,26,13,.97);--ttl:#d4f0d8;--ibg:#0f2012; }
+body.theme-navy   { --bg:#090d18;--bg2:#0d1220;--bg3:#111828;--bg4:#151e30;--sf:#111828;--bd:#1e2d4a;--bd2:#273c60;--tx:#c8d8f8;--tx2:#7a9ad0;--tx3:#3d5a8a;--hbg:rgba(9,13,24,.97);--ttl:#c8d8f8;--ibg:#0d1220; }
+body.theme-warm   { --bg:#120e09;--bg2:#1a1510;--bg3:#221b14;--bg4:#2a2118;--sf:#221b14;--bd:#3d3020;--bd2:#50402a;--tx:#f0e0c8;--tx2:#b89870;--tx3:#6a5030;--hbg:rgba(18,14,9,.97);--ttl:#f0e0c8;--ibg:#1a1510; }
+body.theme-light  { --bg:#f2f5f8;--bg2:#e8ecf0;--bg3:#dde2e8;--bg4:#d0d6de;--sf:#fff;--bd:#c8d0da;--bd2:#b0bac8;--tx:#1a2030;--tx2:#4a5568;--tx3:#8090a8;--hbg:rgba(242,245,248,.97);--ttl:#1a2030;--ibg:#f2f5f8; }
+
+*,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
+body { font-family:'Noto Sans TC',sans-serif; font-size:1rem; background:var(--bg); color:var(--tx); min-height:100vh; overflow-x:hidden; transition:background .3s,color .3s; padding-bottom:env(safe-area-inset-bottom); }
+
+header { position:sticky;top:0;z-index:200; background:var(--hbg);backdrop-filter:blur(14px); border-bottom:1px solid var(--bd); padding:0 1.4rem;height:3.8rem; display:flex;align-items:center;gap:.9rem; }
+.logo { display:flex;align-items:center;gap:.7rem;font-family:'Noto Serif TC',serif; }
+.logo-mark { width:2.6rem;height:2.6rem; border:1.5px solid var(--green);border-radius:.5rem; display:flex;align-items:center;justify-content:center; box-shadow:0 0 14px var(--green-glow); background:rgba(34,197,94,.06);flex-shrink:0; }
+.logo-mark svg { width:1.75rem;height:1.75rem; }
+.logo-name { font-size:1.15rem;font-weight:900;letter-spacing:.1em;color:var(--ttl); }
+.logo-sub  { font-size:.6rem;color:var(--tx3);font-family:'JetBrains Mono',monospace;letter-spacing:.08em;margin-top:.1rem; }
+.hdr-right { margin-left:auto;display:flex;align-items:center;gap:.65rem; }
+.live-dot  { width:.42rem;height:.42rem;border-radius:50%;background:var(--green);box-shadow:0 0 6px var(--green);animation:pulse 2s infinite; }
+@keyframes pulse { 0%,100%{opacity:1}50%{opacity:.25} }
+#clock { font-family:'JetBrains Mono',monospace;font-size:.72rem;color:var(--tx3); }
+
+.settings-bar { background:var(--bg2);border-bottom:1px solid var(--bd); padding:.38rem 1.4rem;display:flex;align-items:center;gap:.6rem;flex-wrap:wrap; }
+.s-lbl { font-size:.68rem;color:var(--tx3);font-family:'JetBrains Mono',monospace;letter-spacing:.05em;white-space:nowrap; }
+.font-btns { display:flex;gap:.25rem; }
+.font-btn { height:1.7rem;padding:0 .55rem;border-radius:.4rem; border:1px solid var(--bd);background:var(--bg3);color:var(--tx2); cursor:pointer;font-family:'JetBrains Mono',monospace;font-size:.75rem;font-weight:700; display:flex;align-items:center;justify-content:center; transition:all .15s; }
+.font-btn:hover { border-color:var(--green);color:var(--green); }
+.font-lbl { font-family:'JetBrains Mono',monospace;font-size:.68rem;color:var(--tx3);min-width:2rem;text-align:center; }
+.s-div { width:1px;height:1.1rem;background:var(--bd);margin:0 .25rem; }
+.swatches { display:flex;gap:.35rem;align-items:center; }
+.swatch { width:1.35rem;height:1.35rem;border-radius:50%;cursor:pointer; border:2px solid transparent;transition:all .18s; }
+.swatch:hover { transform:scale(1.18); }
+.swatch.active { border-color:var(--green);outline:2px solid var(--bg2);outline-offset:1px; }
+.sw-dark   { background:radial-gradient(circle at 38% 38%,#333,#111); }
+.sw-forest { background:radial-gradient(circle at 38% 38%,#22c55e,#0b1a0d); }
+.sw-navy   { background:radial-gradient(circle at 38% 38%,#3b82f6,#090d18); }
+.sw-warm   { background:radial-gradient(circle at 38% 38%,#f59e0b,#120e09); }
+.sw-light  { background:radial-gradient(circle at 38% 38%,#fff,#c8d0da); }
+#theme-lbl { font-size:.65rem;color:var(--tx3);font-family:'JetBrains Mono',monospace; }
+
+nav { background:var(--bg2);border-bottom:1px solid var(--bd); display:flex;padding:0 1.4rem;gap:.1rem; position:sticky;top:3.8rem;z-index:100; }
+.tab-btn { padding:.6rem 1.2rem;border:none;background:none; font-family:'Noto Sans TC',sans-serif;font-size:.86rem;font-weight:500; color:var(--tx3);cursor:pointer; border-bottom:2px solid transparent;margin-bottom:-1px; transition:all .2s;display:flex;align-items:center;gap:.4rem; }
+.tab-btn:hover { color:var(--tx2); }
+.tab-btn.active { color:var(--green);border-bottom-color:var(--green);font-weight:700; }
+
+main { padding:1.2rem 1.4rem;max-width:1500px;margin:0 auto; }
+.panel { display:none;animation:fadeIn .22s ease; }
+.panel.active { display:block; }
+@keyframes fadeIn { from{opacity:0;transform:translateY(4px)} to{opacity:1;transform:none} }
+.sec-hdr { display:flex;align-items:center;gap:.6rem;margin-bottom:1rem;padding-bottom:.8rem;border-bottom:1px solid var(--bd); }
+.sec-title { font-family:'Noto Serif TC',serif;font-size:1.05rem;font-weight:700;color:var(--ttl);letter-spacing:.04em; }
+.sec-line { width:3px;height:1.1rem;border-radius:2px;background:var(--green);box-shadow:0 0 8px var(--green); }
+
+.cards-grid { display:grid;grid-template-columns:repeat(auto-fill,minmax(10rem,1fr));gap:.65rem;margin-bottom:1.1rem; }
+.card { background:var(--sf);border:1px solid var(--bd);border-radius:var(--rl); padding:.95rem .85rem;transition:border-color .2s,transform .15s; position:relative;overflow:hidden; }
+.card::before { content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,.025),transparent 60%);pointer-events:none; }
+.card:hover { border-color:var(--bd2);transform:translateY(-1px); }
+.card.cg { border-color:rgba(34,197,94,.3); }
+.card.ca { border-color:rgba(245,158,11,.3); }
+.card.cr { border-color:rgba(239,68,68,.3); }
+.card-lbl { font-size:.66rem;color:var(--tx3);margin-bottom:.4rem;letter-spacing:.05em;font-family:'JetBrains Mono',monospace; }
+.card-val { font-family:'JetBrains Mono',monospace;font-size:1.8rem;font-weight:600;color:var(--ttl);line-height:1; }
+.card-val.g { color:var(--green); }
+.card-val.a { color:var(--amber); }
+.card-val.r { color:var(--red); }
+.card-val.c { color:var(--cyan); }
+.cu { font-size:.68rem;color:var(--tx3);margin-left:.2rem; }
+.card-sub { font-size:.64rem;color:var(--tx3);margin-top:.28rem;font-family:'JetBrains Mono',monospace; }
+
+.inv-panel { background:var(--sf);border:1px solid var(--bd);border-radius:var(--rl);overflow:hidden; }
+.inv-head { background:var(--bg3);padding:.55rem 1rem;font-size:.68rem;color:var(--tx3);font-family:'JetBrains Mono',monospace;letter-spacing:.06em;border-bottom:1px solid var(--bd); }
+.inv-row { display:flex;align-items:center;gap:.8rem;padding:.62rem 1rem;border-bottom:1px solid var(--bd);transition:background .12s; }
+.inv-row:last-child { border-bottom:none; }
+.inv-row:hover { background:var(--bg3); }
+.inv-name { width:6.5rem;font-size:.86rem;font-weight:500;color:var(--tx); }
+.inv-bar-wrap { flex:1; }
+.inv-bar-bg { width:100%;height:4px;background:var(--bg4);border-radius:2px;overflow:hidden; }
+.inv-bar-fill { height:100%;border-radius:2px;transition:width .6s ease; }
+.fg { background:var(--green);box-shadow:0 0 6px rgba(34,197,94,.5); }
+.fa { background:var(--amber); }
+.fr { background:var(--red); }
+.inv-nums { width:12rem;text-align:right;font-family:'JetBrains Mono',monospace;font-size:.74rem;color:var(--tx2);display:flex;align-items:center;justify-content:flex-end;gap:.6rem; }
+
+.bdg { display:inline-flex;align-items:center;padding:1px 7px;border-radius:20px;font-size:.66rem;font-weight:600;font-family:'JetBrains Mono',monospace;white-space:nowrap; }
+.bdg-g { background:rgba(34,197,94,.12);color:var(--green);border:1px solid rgba(34,197,94,.25); }
+.bdg-a { background:rgba(245,158,11,.12);color:var(--amber);border:1px solid rgba(245,158,11,.25); }
+.bdg-r { background:rgba(239,68,68,.12);color:var(--red);border:1px solid rgba(239,68,68,.25); }
+.bdg-c { background:rgba(6,182,212,.12);color:var(--cyan);border:1px solid rgba(6,182,212,.25); }
+
+.table-wrap { background:var(--sf);border:1px solid var(--bd);border-radius:var(--rl);overflow:auto;margin-bottom:.85rem; }
+table { width:100%;border-collapse:collapse;min-width:700px; }
+thead tr { background:var(--bg3); }
+thead th { padding:.52rem .75rem;text-align:left; font-size:.66rem;font-weight:600;color:var(--tx3); letter-spacing:.07em;font-family:'JetBrains Mono',monospace; border-bottom:1px solid var(--bd);white-space:nowrap;text-transform:uppercase; }
+tbody tr { border-bottom:1px solid rgba(128,128,128,.06);transition:background .1s; }
+tbody tr:hover { background:var(--bg3); }
+tbody tr:last-child { border-bottom:none; }
+tbody td { padding:.45rem .75rem;font-size:.86rem;color:var(--tx);vertical-align:middle; }
+tbody td.mn { font-family:'JetBrains Mono',monospace;font-size:.8rem; }
+
+.toolbar { display:flex;align-items:center;gap:.6rem;margin-bottom:.85rem;flex-wrap:wrap; }
+.toolbar-right { margin-left:auto;display:flex;gap:.5rem; }
+.search-input { padding:.42rem .75rem;background:var(--bg3);border:1px solid var(--bd); border-radius:var(--r);color:var(--tx); font-family:'Noto Sans TC',sans-serif;font-size:.82rem; outline:none;transition:border-color .15s;width:11rem; }
+.search-input:focus { border-color:var(--green); }
+.search-input::placeholder { color:var(--tx3); }
+
+.btn { display:inline-flex;align-items:center;gap:.4rem;padding:.42rem .85rem;border-radius:var(--r);border:none;font-family:'Noto Sans TC',sans-serif;font-size:.82rem;font-weight:500;cursor:pointer;transition:all .15s;white-space:nowrap; }
+.btn-p { background:var(--green);color:#000;font-weight:700; }
+.btn-p:hover { filter:brightness(1.1);box-shadow:0 0 12px var(--green-glow); }
+.btn-g { background:var(--bg3);color:var(--tx2);border:1px solid var(--bd); }
+.btn-g:hover { background:var(--bg4);color:var(--tx); }
+.btn-d { background:rgba(239,68,68,.1);color:var(--red);border:1px solid rgba(239,68,68,.2); }
+.btn-d:hover { background:rgba(239,68,68,.2); }
+.btn-sm { padding:.22rem .65rem;font-size:.74rem; }
+
+.flow-banner { background:linear-gradient(90deg,rgba(6,182,212,.07),rgba(34,197,94,.07)); border:1px solid var(--bd);border-radius:var(--rl); padding:.65rem 1rem;margin-bottom:.85rem; display:flex;align-items:center;gap:.7rem;flex-wrap:wrap; font-size:.8rem;color:var(--tx2); }
+.flow-tag { padding:.25rem .75rem;border-radius:20px;font-size:.68rem;font-weight:600;font-family:'JetBrains Mono',monospace; }
+.ft-src { background:rgba(6,182,212,.1);color:var(--cyan);border:1px solid rgba(6,182,212,.3); }
+.ft-dst { background:rgba(34,197,94,.1);color:var(--green);border:1px solid rgba(34,197,94,.3); }
+.flow-stats { margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:.72rem;display:flex;gap:1.1rem; }
+.fsv { font-size:.95rem;font-weight:600;color:var(--ttl); }
+.fsl { color:var(--tx3);font-size:.62rem; }
+
+.rem { display:inline-flex;align-items:center;padding:2px .65rem;border-radius:20px;font-family:'JetBrains Mono',monospace;font-size:.72rem;font-weight:600; }
+.rem-ok   { background:rgba(34,197,94,.12);color:var(--green); }
+.rem-warn { background:rgba(245,158,11,.12);color:var(--amber); }
+.rem-zero { background:rgba(239,68,68,.12);color:var(--red); }
+
+.light { display:inline-block;width:.75rem;height:.75rem;border-radius:50%;flex-shrink:0;vertical-align:middle; }
+.light-blue   { background:#3b82f6;box-shadow:0 0 6px #3b82f6; }
+.light-orange { background:#f97316;box-shadow:0 0 6px #f97316; }
+.light-red    { background:#ef4444;box-shadow:0 0 6px #ef4444; }
+.status-cell { display:inline-flex;align-items:center;gap:.38rem;font-size:.74rem;font-family:'JetBrains Mono',monospace; }
+
+.modal-overlay { display:none;position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:500;align-items:center;justify-content:center;backdrop-filter:blur(4px); }
+.modal-overlay.show { display:flex; }
+.modal { background:var(--sf);border:1px solid var(--bd2);border-radius:var(--rl);padding:1.5rem 1.65rem;width:38rem;max-width:95vw;box-shadow:0 20px 60px rgba(0,0,0,.55);max-height:92vh;overflow-y:auto;animation:mIn .2s ease; }
+@keyframes mIn { from{opacity:0;transform:scale(.97) translateY(-8px)} to{opacity:1;transform:none} }
+.modal-title { font-family:'Noto Serif TC',serif;font-size:.95rem;font-weight:700;color:var(--ttl);margin-bottom:1rem;padding-bottom:.75rem;border-bottom:1px solid var(--bd);display:flex;align-items:center;gap:.5rem; }
+.form-grid { display:grid;grid-template-columns:1fr 1fr;gap:.72rem; }
+.form-group { display:flex;flex-direction:column;gap:.3rem; }
+.form-group.full { grid-column:1/-1; }
+label { font-size:.68rem;color:var(--tx3);font-weight:500;letter-spacing:.05em;font-family:'JetBrains Mono',monospace; }
+input,select,textarea { padding:.48rem .7rem;background:var(--ibg);border:1px solid var(--bd);border-radius:var(--r);color:var(--tx);font-family:'Noto Sans TC',sans-serif;font-size:.86rem;outline:none;transition:border-color .15s; }
+input:focus,select:focus { border-color:var(--green); }
+select option { background:var(--bg3); }
+.modal-actions { display:flex;justify-content:flex-end;gap:.5rem;margin-top:1rem; }
+.form-readonly { padding:.48rem .7rem;background:var(--bg4);border:1px solid var(--bd);border-radius:var(--r);color:var(--tx3);font-family:'JetBrains Mono',monospace;font-size:.82rem;min-height:2.2rem; }
+
+.prog-bar { width:100%;height:4px;background:var(--bg4);border-radius:2px;overflow:hidden; }
+.prog-fill { height:100%;border-radius:2px; }
+
+.empty-state { text-align:center;padding:2.2rem;color:var(--tx3);font-size:.82rem; }
+.empty-icon  { font-size:2rem;margin-bottom:.6rem;opacity:.3; }
+
+.save-bar { position:fixed;bottom:calc(1rem + env(safe-area-inset-bottom));right:1rem;z-index:300; display:flex;align-items:center;gap:.5rem; }
+.btn-save { background:var(--green);color:#000;font-weight:700; border:none;border-radius:2rem; padding:.6rem 1.3rem;font-size:.88rem; display:flex;align-items:center;gap:.4rem; box-shadow:0 4px 18px rgba(34,197,94,.45); cursor:pointer;transition:all .18s; font-family:'Noto Sans TC',sans-serif; }
+.btn-save:hover { filter:brightness(1.1);transform:translateY(-1px); }
+.save-toast { background:var(--bg3);border:1px solid var(--green);border-radius:2rem; padding:.45rem 1rem;font-size:.78rem;color:var(--green); font-family:'JetBrains Mono',monospace; opacity:0;transition:opacity .3s;pointer-events:none; }
+.save-toast.show { opacity:1; }
+
+.alert-panel { background:rgba(239,68,68,.07);border:1px solid rgba(239,68,68,.3); border-radius:var(--rl);padding:.7rem 1rem;margin-bottom:.85rem; }
+.alert-title { font-size:.72rem;color:var(--red);font-family:'JetBrains Mono',monospace;font-weight:700;letter-spacing:.06em;margin-bottom:.45rem; }
+.alert-item { display:flex;align-items:center;gap:.5rem;padding:.28rem 0;font-size:.82rem;color:var(--tx2); }
+.dot-red  { width:.55rem;height:.55rem;border-radius:50%;background:var(--red);box-shadow:0 0 5px var(--red);flex-shrink:0; }
+.dot-blue { width:.55rem;height:.55rem;border-radius:50%;background:var(--cyan);box-shadow:0 0 5px var(--cyan);flex-shrink:0; }
+
+/* SUB PAGE */
+.sub-page { display:none;position:fixed;inset:0;z-index:400;background:var(--bg);overflow-y:auto; }
+.sub-page.show { display:block; }
+.sub-header { position:sticky;top:0;z-index:10;background:var(--hbg);backdrop-filter:blur(14px);border-bottom:1px solid var(--bd); padding:0 1.4rem;height:3.5rem;display:flex;align-items:center;gap:.9rem; }
+.sub-body { padding:1.2rem 1.4rem;max-width:1200px;margin:0 auto; }
+.wh-grid { display:grid;grid-template-columns:repeat(auto-fill,minmax(11rem,1fr));gap:.65rem;margin-bottom:1.1rem; }
+.wh-card { background:var(--sf);border:1px solid var(--bd);border-radius:var(--rl);padding:.85rem;position:relative;overflow:hidden; }
+.wh-card::before { content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,.025),transparent 60%);pointer-events:none; }
+.wh-card-label { font-size:.62rem;color:var(--tx3);font-family:'JetBrains Mono',monospace;margin-bottom:.3rem; }
+.wh-card-val { font-size:1.45rem;font-weight:700;font-family:'JetBrains Mono',monospace;color:var(--ttl); }
+.pct-bar { height:5px;border-radius:3px;background:var(--bg4);overflow:hidden;margin-top:.5rem; }
+.pct-fill { height:100%;border-radius:3px;background:var(--green); }
+
+/* BILLING */
+.billing-group { background:var(--sf);border:1px solid var(--bd);border-radius:var(--rl);overflow:hidden;margin-bottom:.85rem; }
+.billing-header { background:var(--bg3);padding:.55rem 1rem;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--bd); }
+.billing-period { font-size:.78rem;font-weight:700;color:var(--ttl);font-family:'Noto Serif TC',serif; }
+.billing-total { font-family:'JetBrains Mono',monospace;font-size:.85rem;color:var(--green);font-weight:700; }
+
+.wh-link { color:var(--cyan);font-weight:700;cursor:pointer;text-decoration:underline;font-family:'JetBrains Mono',monospace;font-size:.82rem; }
+.wh-link:hover { color:var(--blue); }
+
+.legend-bar { display:flex;align-items:center;gap:1rem;margin-bottom:.65rem;font-size:.72rem;font-family:'JetBrains Mono',monospace;color:var(--tx3);flex-wrap:wrap; }
+.legend-item { display:flex;align-items:center;gap:.38rem; }
+
+@media(max-width:640px){
+  html { font-size: 14px; }
+  main { padding:.6rem .5rem; }
+  header { padding:0 .75rem; height:3.2rem; gap:.5rem; }
+  .logo-name { font-size:1rem; letter-spacing:.05em; }
+  .logo-sub { display:none; }
+  .logo-mark { width:2.2rem; height:2.2rem; }
+  .logo-mark svg { width:1.5rem; height:1.5rem; }
+  #clock { font-size:.6rem; }
+  .settings-bar { padding:.4rem .5rem; gap:.4rem; }
+  .s-lbl { font-size:.62rem; }
+  .font-btn { height:2rem; padding:0 .6rem; font-size:.8rem; }
+  .swatch { width:1.6rem; height:1.6rem; }
+  #theme-lbl { display:none; }
+  nav { padding:0; top:3.2rem; overflow-x:auto; -webkit-overflow-scrolling:touch; scrollbar-width:none; }
+  nav::-webkit-scrollbar { display:none; }
+  .tab-btn { padding:.7rem .85rem; font-size:.8rem; white-space:nowrap; flex-shrink:0; min-height:2.8rem; }
+  .cards-grid { grid-template-columns:1fr 1fr; gap:.5rem; }
+  .card { padding:.75rem .65rem; }
+  .card-val { font-size:1.5rem; }
+  .table-wrap { overflow-x:auto; -webkit-overflow-scrolling:touch; border-radius:var(--r); }
+  table { min-width:600px; }
+  thead th { padding:.5rem .6rem; font-size:.62rem; }
+  tbody td { padding:.5rem .6rem; font-size:.82rem; }
+  .toolbar { gap:.4rem; }
+  .toolbar-right { margin-left:0; width:100%; }
+  .search-input { width:100%; font-size:.9rem; padding:.55rem .75rem; }
+  .btn { padding:.55rem .85rem; font-size:.85rem; min-height:2.4rem; }
+  .btn-sm { padding:.4rem .65rem; font-size:.78rem; min-height:2rem; }
+  .modal { width:100%; max-width:100vw; margin:0; border-radius:var(--rl) var(--rl) 0 0; position:fixed; bottom:0; left:0; right:0; max-height:92vh; padding:1.2rem 1rem 2rem; }
+  .modal-overlay { align-items:flex-end; }
+  .form-grid { grid-template-columns:1fr; gap:.6rem; }
+  input, select, textarea { font-size:16px; padding:.6rem .75rem; min-height:2.6rem; }
+  .modal-actions { gap:.5rem; }
+  .modal-actions .btn { flex:1; justify-content:center; min-height:2.8rem; font-size:.9rem; }
+  .flow-banner { flex-direction:column; gap:.4rem; padding:.5rem .75rem; }
+  .flow-stats { margin-left:0; gap:.75rem; }
+  .inv-name { width:5rem; font-size:.82rem; }
+  .inv-nums { width:auto; font-size:.72rem; }
+  .sec-hdr { margin-bottom:.75rem; padding-bottom:.6rem; }
+  .sec-title { font-size:.95rem; }
+  .sub-header { padding:0 .75rem; }
+  .sub-body { padding:.6rem .5rem; }
+}
+@media(max-width:375px){
+  html { font-size:13px; }
+  .tab-btn { padding:.7rem .65rem; font-size:.75rem; }
+}
+</style>
+</head>
+<body class="theme-dark">
+
+<header>
+  <div class="logo">
+    <div class="logo-mark">
+      <svg viewBox="0 0 52 52" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <radialGradient id="lg-cap" cx="42%" cy="35%" r="60%"><stop offset="0%" stop-color="#fb923c"/><stop offset="55%" stop-color="#dc2626"/><stop offset="100%" stop-color="#991b1b"/></radialGradient>
+          <radialGradient id="lg-shine" cx="40%" cy="25%" r="55%"><stop offset="0%" stop-color="#fef3c7" stop-opacity="0.6"/><stop offset="100%" stop-color="#fef3c7" stop-opacity="0"/></radialGradient>
+        </defs>
+        <rect x="20" y="30" width="12" height="17" rx="4" fill="#fde68a"/>
+        <rect x="22" y="30" width="3" height="17" rx="1.5" fill="#fbbf24" opacity="0.45"/>
+        <line x1="22" y1="32" x2="22" y2="46" stroke="#d97706" stroke-width="0.9" opacity="0.55"/>
+        <line x1="26" y1="30" x2="26" y2="47" stroke="#d97706" stroke-width="0.9" opacity="0.55"/>
+        <line x1="30" y1="32" x2="30" y2="46" stroke="#d97706" stroke-width="0.9" opacity="0.55"/>
+        <path d="M4 31 C4 16 11 6 26 6 C41 6 48 16 48 31 Z" fill="url(#lg-cap)"/>
+        <path d="M4 31 C4 16 11 6 26 6 C41 6 48 16 48 31 Z" fill="url(#lg-shine)"/>
+        <path d="M4 31 C4 16 11 6 26 6 C18 6 8 16 8 31 Z" fill="#991b1b" opacity="0.35"/>
+        <circle cx="16" cy="19" r="4" fill="white" opacity="0.85"/>
+        <circle cx="32" cy="14" r="2.8" fill="white" opacity="0.80"/>
+        <circle cx="26" cy="26" r="2.2" fill="white" opacity="0.72"/>
+        <circle cx="40" cy="22" r="2" fill="white" opacity="0.65"/>
+        <circle cx="11" cy="28" r="1.6" fill="white" opacity="0.60"/>
+        <path d="M4 31 Q14 36 26 34 Q38 36 48 31" stroke="#7f1d1d" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <div>
+      <div class="logo-name">大三元農場</div>
+      <div class="logo-sub">RAW MATERIAL TRACKING SYSTEM</div>
+    </div>
+  </div>
+  <div class="hdr-right">
+    <div style="display:flex;align-items:center;gap:.35rem">
+      <div class="live-dot"></div>
+      <span style="font-family:'JetBrains Mono',monospace;font-size:.68rem;color:var(--tx3)">LIVE</span>
+    </div>
+    <span id="clock"></span>
+  </div>
+</header>
+
+<div class="settings-bar">
+  <span class="s-lbl">字體大小</span>
+  <div class="font-btns">
+    <button class="font-btn" onclick="changeFont(-1)">A−</button>
+    <button class="font-btn" onclick="changeFont(0)">↺</button>
+    <button class="font-btn" onclick="changeFont(1)">A＋</button>
+  </div>
+  <span class="font-lbl" id="font-lbl">15px</span>
+  <div class="s-div"></div>
+  <span class="s-lbl">背景主題</span>
+  <div class="swatches">
+    <div class="swatch sw-dark active"   onclick="setTheme('dark',this)"></div>
+    <div class="swatch sw-forest"        onclick="setTheme('forest',this)"></div>
+    <div class="swatch sw-navy"          onclick="setTheme('navy',this)"></div>
+    <div class="swatch sw-warm"          onclick="setTheme('warm',this)"></div>
+    <div class="swatch sw-light"         onclick="setTheme('light',this)"></div>
+  </div>
+  <span id="theme-lbl">深黑</span>
+</div>
+
+<nav>
+  <button class="tab-btn active" id="tab-overview"   onclick="switchTab('overview')">◉ 總覽</button>
+  <button class="tab-btn"        id="tab-material"   onclick="switchTab('material')">▦ 原物料</button>
+  <button class="tab-btn"        id="tab-production" onclick="switchTab('production')">▶ 生產紀錄</button>
+  <button class="tab-btn"        id="tab-bagmaking"  onclick="switchTab('bagmaking')">◈ 太空包制包</button>
+  <button class="tab-btn"        id="tab-orders"     onclick="switchTab('orders')">📦 出貨訂單</button>
+</nav>
+
+<main>
+
+<!-- OVERVIEW -->
+<div class="panel active" id="panel-overview">
+  <div class="sec-hdr"><div class="sec-line"></div><div class="sec-title">庫存總覽</div></div>
+  <div class="cards-grid" id="ov-cards"></div>
+  <div id="ov-alert"></div>
+  <div class="inv-panel">
+    <div class="inv-head">● 各原物料即時庫存 / INVENTORY STATUS</div>
+    <div id="inv-list"></div>
+  </div>
+</div>
+
+<!-- MATERIAL -->
+<div class="panel" id="panel-material">
+  <div class="sec-hdr"><div class="sec-line"></div><div class="sec-title">原物料管理</div></div>
+  <div class="toolbar">
+    <button class="btn btn-p" onclick="openMatModal()">＋ 新增原物料</button>
+    <div class="toolbar-right"><input class="search-input" id="mat-search" placeholder="搜尋原物料…" oninput="renderMat()"></div>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>#</th><th>原物料名稱</th><th>現存數量</th><th>單位</th><th>叫料數量</th><th>狀態</th><th>備註</th><th>操作</th></tr></thead>
+      <tbody id="mat-tbody"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- PRODUCTION -->
+<div class="panel" id="panel-production">
+  <div class="sec-hdr">
+    <div class="sec-line"></div>
+    <div class="sec-title">生產紀錄</div>
+    <span class="bdg bdg-g" style="margin-left:.5rem">終端</span>
+  </div>
+  <div class="legend-bar">
+    <div class="legend-item"><span class="light light-blue"></span>未採收</div>
+    <div class="legend-item"><span class="light light-orange"></span>採收中</div>
+    <div class="legend-item"><span class="light light-red"></span>採收結束（可扣包）</div>
+    <span style="color:var(--tx3);font-size:.68rem">｜ 點選庫房編號可查看採菇詳細</span>
+  </div>
+  <div class="toolbar">
+    <button class="btn btn-p" onclick="openProdModal()">＋ 新增生產紀錄</button>
+    <div class="toolbar-right"><input class="search-input" id="prod-search" placeholder="搜尋品種/庫房…" oninput="renderProd()"></div>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr>
+        <th>#</th><th>庫房</th><th>品種</th><th>開包日期</th><th>採收日期</th>
+        <th>接種1</th><th>接種2</th><th>接種3</th>
+        <th>天數1</th><th>天數2</th><th>天數3</th>
+        <th>採收結束</th><th>操作</th>
+      </tr></thead>
+      <tbody id="prod-tbody"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- BAG MAKING -->
+<div class="panel" id="panel-bagmaking">
+  <div class="sec-hdr">
+    <div class="sec-line" style="background:var(--cyan);box-shadow:0 0 8px var(--cyan)"></div>
+    <div class="sec-title">太空包制包</div>
+    <span class="bdg bdg-c" style="margin-left:.5rem">源頭</span>
+  </div>
+  <div class="flow-banner">
+    <span class="flow-tag ft-src">◈ 太空包制包（源頭）</span>
+    <span style="color:var(--tx3)">→</span>
+    <span class="flow-tag ft-dst">▶ 生產紀錄（終端）</span>
+    <span style="font-size:.72rem;color:var(--tx3)">先進先出自動扣除 · 紅燈=採收結束才扣包</span>
+    <div class="flow-stats" id="flow-stats"></div>
+  </div>
+  <div class="toolbar">
+    <button class="btn btn-p" onclick="openBagModal()">＋ 新增制包紀錄</button>
+    <div class="toolbar-right"><input class="search-input" id="bag-search" placeholder="搜尋品種…" oninput="renderBag()"></div>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr>
+        <th>#</th><th>品種</th><th>接種日期</th><th>制包數量</th>
+        <th>剩餘可用</th><th>已用於生產</th><th>木屑(kg)</th><th>備註</th><th>操作</th>
+      </tr></thead>
+      <tbody id="bag-tbody"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ORDERS -->
+<div class="panel" id="panel-orders">
+  <div class="sec-hdr">
+    <div class="sec-line" style="background:var(--amber);box-shadow:0 0 8px var(--amber)"></div>
+    <div class="sec-title">出貨訂單</div>
+    <span class="bdg bdg-a" style="margin-left:.5rem">貨款結算</span>
+  </div>
+  <div class="toolbar">
+    <button class="btn btn-p" onclick="openOrderModal()">＋ 新增出貨訂單</button>
+    <div class="toolbar-right"><input class="search-input" id="order-search" placeholder="搜尋大盤商…" oninput="renderOrders()"></div>
+  </div>
+  <div id="orders-container"></div>
+</div>
+
+</main>
+
+<!-- WAREHOUSE DETAIL SUB-PAGE -->
+<div class="sub-page" id="sub-warehouse">
+  <div class="sub-header">
+    <button class="btn btn-g btn-sm" onclick="closeWarehouse()">← 返回</button>
+    <span id="sub-wh-title" style="font-family:'Noto Serif TC',serif;font-weight:700;font-size:1rem;color:var(--ttl)"></span>
+    <button class="btn btn-p btn-sm" style="margin-left:auto" onclick="openWhDetailModal()">＋ 新增採菇記錄</button>
+  </div>
+  <div class="sub-body">
+    <div class="wh-grid" id="sub-wh-cards"></div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr>
+          <th>#</th><th>產出苔數</th><th>A級(kg)</th><th>B級(kg)</th>
+          <th>傳統200g(包)</th><th>有機200g(包)</th><th>A佔比</th><th>B佔比</th><th>操作</th>
+        </tr></thead>
+        <tbody id="sub-wh-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Material -->
+<div class="modal-overlay" id="modal-mat">
+<div class="modal">
+  <div class="modal-title">▦ <span id="m-title">新增原物料</span></div>
+  <div class="form-grid">
+    <div class="form-group full"><label>原物料名稱</label><input type="text" id="m-name" placeholder="例：木屑"></div>
+    <div class="form-group"><label>現存數量</label><input type="number" id="m-stock" min="0" placeholder="0"></div>
+    <div class="form-group"><label>單位</label>
+      <select id="m-unit"><option>公斤</option><option>公克</option><option>包</option><option>袋</option><option>桶</option><option>瓶</option><option>公升</option><option>個</option><option>箱</option></select>
+    </div>
+    <div class="form-group"><label>叫料數量</label><input type="number" id="m-order" min="0" placeholder="0"></div>
+    <div class="form-group full"><label>備註</label><input type="text" id="m-note" placeholder="選填"></div>
+  </div>
+  <div class="modal-actions">
+    <button class="btn btn-g" onclick="closeModal('modal-mat')">取消</button>
+    <button class="btn btn-p" onclick="saveMat()">儲存</button>
+  </div>
+</div>
+</div>
+
+<!-- MODAL: Production -->
+<div class="modal-overlay" id="modal-prod">
+<div class="modal">
+  <div class="modal-title">▶ <span id="p-title">新增生產紀錄</span></div>
+  <div class="form-grid">
+    <div class="form-group">
+      <label>庫房（下拉選擇）</label>
+      <select id="p-warehouse-sel" onchange="syncWHfromSel()">
+        <option value="">— 選擇庫房 —</option>
+        <option>1庫</option><option>2庫</option><option>3庫</option><option>4庫</option>
+        <option>5庫</option><option>6庫</option><option>7庫</option><option>8庫</option>
+        <option>9庫</option><option>10庫</option><option>11庫</option><option>12庫</option>
+        <option>13庫</option><option>14庫</option><option value="__custom__">手動輸入…</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>庫房（手動輸入）</label>
+      <input type="text" id="p-warehouse" placeholder="直接輸入庫房名稱" oninput="syncWHfromText()">
+    </div>
+    <div class="form-group"><label>品種</label><input type="text" id="p-variety" placeholder="例：白玉菇"></div>
+    <div class="form-group"><label>開包日期</label><input type="date" id="p-openDate" oninput="calcDays()"></div>
+    <div class="form-group"><label>採收日期</label><input type="date" id="p-harvestDate"></div>
+    <div class="form-group"><label>接種日期1</label><input type="date" id="p-inoc1" oninput="calcDays()"></div>
+    <div class="form-group"><label>接種日期2</label><input type="date" id="p-inoc2" oninput="calcDays()"></div>
+    <div class="form-group"><label>接種日期3</label><input type="date" id="p-inoc3" oninput="calcDays()"></div>
+    <div class="form-group"><label>天數1（開包－接種1）</label><div class="form-readonly" id="p-days1">—</div></div>
+    <div class="form-group"><label>天數2（開包－接種2）</label><div class="form-readonly" id="p-days2">—</div></div>
+    <div class="form-group"><label>天數3（開包－接種3）</label><div class="form-readonly" id="p-days3">—</div></div>
+    <div class="form-group">
+      <label>採收結束狀態</label>
+      <select id="p-status">
+        <option value="0">🔵 未採收</option>
+        <option value="1">🟠 採收中</option>
+        <option value="2">🔴 採收結束</option>
+      </select>
+    </div>
+  </div>
+  <div class="modal-actions">
+    <button class="btn btn-g" onclick="closeModal('modal-prod')">取消</button>
+    <button class="btn btn-p" onclick="saveProd()">儲存</button>
+  </div>
+</div>
+</div>
+
+<!-- MODAL: Bag -->
+<div class="modal-overlay" id="modal-bag">
+<div class="modal">
+  <div class="modal-title">◈ <span id="b-title">新增制包紀錄</span></div>
+  <div class="form-grid">
+    <div class="form-group"><label>品種</label><input type="text" id="b-variety" placeholder="例：金針菇"></div>
+    <div class="form-group"><label>接種日期</label><input type="date" id="b-inocu"></div>
+    <div class="form-group"><label>制包數量（包）</label><input type="number" id="b-qty" min="0" placeholder="0"></div>
+    <div class="form-group"><label>木屑（公斤）</label><input type="number" id="b-sawdust" min="0" step="0.1" placeholder="0"></div>
+    <div class="form-group full"><label>備註</label><input type="text" id="b-note" placeholder="選填"></div>
+  </div>
+  <div class="modal-actions">
+    <button class="btn btn-g" onclick="closeModal('modal-bag')">取消</button>
+    <button class="btn btn-p" onclick="saveBag()">儲存</button>
+  </div>
+</div>
+</div>
+
+<!-- MODAL: Warehouse Detail -->
+<div class="modal-overlay" id="modal-wh-detail">
+<div class="modal">
+  <div class="modal-title">🍄 <span id="wd-title">新增採菇記錄</span></div>
+  <div class="form-grid">
+    <div class="form-group full"><label>產出苔數</label><input type="number" id="wd-total" min="0" step="0.1" placeholder="0" oninput="calcWhRatios()"></div>
+    <div class="form-group"><label>A級（kg）</label><input type="number" id="wd-a" min="0" step="0.1" placeholder="0" oninput="calcWhRatios()"></div>
+    <div class="form-group"><label>B級（kg）</label><input type="number" id="wd-b" min="0" step="0.1" placeholder="0" oninput="calcWhRatios()"></div>
+    <div class="form-group"><label>傳統200g（包數輸入）</label><input type="number" id="wd-t200" min="0" placeholder="0" oninput="calcWhRatios()"></div>
+    <div class="form-group"><label>有機200g（包數輸入）</label><input type="number" id="wd-o200" min="0" placeholder="0" oninput="calcWhRatios()"></div>
+    <div class="form-group"><label>A佔比（自動）</label><div class="form-readonly" id="wd-apct">—</div></div>
+    <div class="form-group"><label>B佔比（自動）</label><div class="form-readonly" id="wd-bpct">—</div></div>
+  </div>
+  <div class="modal-actions">
+    <button class="btn btn-g" onclick="closeModal('modal-wh-detail')">取消</button>
+    <button class="btn btn-p" onclick="saveWhDetail()">儲存</button>
+  </div>
+</div>
+</div>
+
+<!-- MODAL: Order -->
+<div class="modal-overlay" id="modal-order">
+<div class="modal">
+  <div class="modal-title">📦 <span id="or-title">新增出貨訂單</span></div>
+  <div class="form-grid">
+    <div class="form-group"><label>大盤商</label><input type="text" id="or-dealer" placeholder="大盤商名稱"></div>
+    <div class="form-group"><label>載貨日期</label><input type="date" id="or-date"></div>
+    <div class="form-group">
+      <label>庫號</label>
+      <select id="or-warehouse">
+        <option value="">選擇庫號</option>
+        <option>1庫</option><option>2庫</option><option>3庫</option><option>4庫</option>
+        <option>5庫</option><option>6庫</option><option>7庫</option><option>8庫</option>
+        <option>9庫</option><option>10庫</option><option>11庫</option><option>12庫</option>
+        <option>13庫</option><option>14庫</option>
+      </select>
+    </div>
+    <div class="form-group"></div>
+    <div class="form-group"><label>A級（包）</label><input type="number" id="or-a-qty" min="0" step="0.1" placeholder="0" oninput="calcOrderTotal()"></div>
+    <div class="form-group"><label>A級單價</label><input type="number" id="or-a-price" min="0" step="0.1" placeholder="0" oninput="calcOrderTotal()"></div>
+    <div class="form-group"><label>B級（kg）</label><input type="number" id="or-b-qty" min="0" step="0.1" placeholder="0" oninput="calcOrderTotal()"></div>
+    <div class="form-group"><label>B級單價</label><input type="number" id="or-b-price" min="0" step="0.1" placeholder="0" oninput="calcOrderTotal()"></div>
+    <div class="form-group"><label>傳統200g（包）</label><input type="number" id="or-t200-qty" min="0" step="0.1" placeholder="0" oninput="calcOrderTotal()"></div>
+    <div class="form-group"><label>傳統200g單價</label><input type="number" id="or-t200-price" min="0" step="0.1" placeholder="0" oninput="calcOrderTotal()"></div>
+    <div class="form-group"><label>有機200g（包）</label><input type="number" id="or-o200-qty" min="0" step="0.1" placeholder="0" oninput="calcOrderTotal()"></div>
+    <div class="form-group"><label>有機200g單價</label><input type="number" id="or-o200-price" min="0" step="0.1" placeholder="0" oninput="calcOrderTotal()"></div>
+    <div class="form-group full">
+      <label>貨款（自動計算）</label>
+      <div class="form-readonly" id="or-total" style="font-size:1.15rem;color:var(--green);font-weight:700">$0</div>
+    </div>
+  </div>
+  <div style="font-size:.68rem;color:var(--tx3);margin-top:.5rem;font-family:'JetBrains Mono',monospace">
+    貨款 = A級×單價 + (B級×3)×單價 + 傳統200g×單價 + 有機200g×單價
+  </div>
+  <div class="modal-actions">
+    <button class="btn btn-g" onclick="closeModal('modal-order')">取消</button>
+    <button class="btn btn-p" onclick="saveOrder()">儲存</button>
+  </div>
+</div>
+</div>
+
+<!-- SAVE BAR -->
+<div class="save-bar">
+  <span class="save-toast" id="save-toast">✓ 已儲存</span>
+  <button class="btn-save" onclick="saveAll()">💾 儲存資料</button>
+</div>
+
+<script>
+// ── Font ──
+let fontSize = 15;
+function changeFont(d) {
+  if (d === 0) fontSize = 15;
+  else fontSize = Math.min(22, Math.max(11, fontSize + d));
+  document.documentElement.style.fontSize = fontSize + 'px';
+  document.getElementById('font-lbl').textContent = fontSize + 'px';
+}
+
+// ── Theme ──
+const themeNames = { dark:'深黑', forest:'森林綠', navy:'深藍', warm:'暖棕', light:'明亮' };
+function setTheme(name, el) {
+  document.body.className = 'theme-' + name;
+  document.querySelectorAll('.swatch').forEach(s => s.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('theme-lbl').textContent = themeNames[name] || name;
+}
+
+// ── Storage ──
+const KEYS = {
+  mat:'dsyfarm_materials', prod:'dsyfarm_productions',
+  bag:'dsyfarm_bags', whd:'dsyfarm_wh_detail', ord:'dsyfarm_orders'
+};
+
+function loadData() {
+  try {
+    const m=localStorage.getItem(KEYS.mat),  p=localStorage.getItem(KEYS.prod),
+          b=localStorage.getItem(KEYS.bag),  w=localStorage.getItem(KEYS.whd),
+          o=localStorage.getItem(KEYS.ord);
+    if(m) materials=JSON.parse(m);
+    if(p) productions=JSON.parse(p);
+    if(b) bagRecords=JSON.parse(b);
+    if(w) whDetails=JSON.parse(w);
+    if(o) orderRecords=JSON.parse(o);
+    matSeq  = materials.length    ? Math.max(...materials.map(x=>x.id))    : 0;
+    prodSeq = productions.length  ? Math.max(...productions.map(x=>x.id))  : 0;
+    bagSeq  = bagRecords.length   ? Math.max(...bagRecords.map(x=>x.id))   : 0;
+    whdSeq  = whDetails.length    ? Math.max(...whDetails.map(x=>x.id))    : 0;
+    ordSeq  = orderRecords.length ? Math.max(...orderRecords.map(x=>x.id)) : 0;
+  } catch(e) {}
+}
+
+function saveAll() {
+  try {
+    localStorage.setItem(KEYS.mat,  JSON.stringify(materials));
+    localStorage.setItem(KEYS.prod, JSON.stringify(productions));
+    localStorage.setItem(KEYS.bag,  JSON.stringify(bagRecords));
+    localStorage.setItem(KEYS.whd,  JSON.stringify(whDetails));
+    localStorage.setItem(KEYS.ord,  JSON.stringify(orderRecords));
+    const t=document.getElementById('save-toast');
+    t.classList.add('show');
+    setTimeout(()=>t.classList.remove('show'),2000);
+  } catch(e){ alert('儲存失敗：'+e.message); }
+}
+
+// ── Default Data ──
+let materials = [
+  {id:1,name:'木屑',stock:500,unit:'公斤',order:300,note:''},
+  {id:2,name:'米糠',stock:80,unit:'公斤',order:200,note:''},
+  {id:3,name:'石灰',stock:45,unit:'公斤',order:100,note:'需注意存放'},
+  {id:4,name:'太空包',stock:1200,unit:'個',order:1000,note:''},
+  {id:5,name:'棉花塞',stock:3000,unit:'個',order:2000,note:''},
+  {id:6,name:'酒精',stock:10,unit:'公升',order:30,note:'易揮發需密封'},
+];
+let matSeq = 6;
+
+// productions: { id, warehouse, variety, openDate, harvestDate, inoc1, inoc2, inoc3, status(0/1/2) }
+let productions = [
+  {id:1,warehouse:'1庫',variety:'白玉菇',openDate:'2025-07-01',harvestDate:'2025-07-15',inoc1:'2025-06-10',inoc2:'2025-06-20',inoc3:'',status:2},
+  {id:2,warehouse:'2庫',variety:'秀珍菇',openDate:'2025-07-20',harvestDate:'',inoc1:'2025-07-01',inoc2:'',inoc3:'',status:0},
+];
+let prodSeq = 2;
+
+// bagRecords: { id, variety, inocuDate, qty, sawdust, note }
+let bagRecords = [
+  {id:1,variety:'白玉菇',inocuDate:'2025-06-10',qty:500,sawdust:200,note:''},
+  {id:2,variety:'秀珍菇',inocuDate:'2025-07-01',qty:300,sawdust:120,note:''},
+  {id:3,variety:'白玉菇',inocuDate:'2025-07-17',qty:400,sawdust:160,note:'第二批'},
+];
+let bagSeq = 3;
+
+// whDetails: { id, warehouse, total, a, b, t200, o200 }
+let whDetails = [];
+let whdSeq = 0;
+
+// orderRecords: { id, dealer, date, warehouse, aQty, aPrice, bQty, bPrice, t200Qty, t200Price, o200Qty, o200Price, total }
+let orderRecords = [];
+let ordSeq = 0;
+
+let eM=null, eP=null, eB=null, eWD=null, eOR=null;
+let currentWarehouse = '';
+
+loadData();
+
+// ── Utils ──
+function today(){ return new Date().toISOString().slice(0,10); }
+function fmt(v){ return (v===''||v==null||v===undefined)?'—':v; }
+
+function dateDiff(a, b) {
+  // returns (a - b) in days, only if positive
+  if(!a||!b) return null;
+  const diff = Math.round((new Date(a)-new Date(b))/86400000);
+  return diff>0 ? diff : null;
+}
+
+function fifo(variety) {
+  const bags = bagRecords.filter(b=>b.variety===variety).sort((a,b)=>a.inocuDate.localeCompare(b.inocuDate));
+  // Only status===2 (採收結束) triggers FIFO deduction
+  let used = productions.filter(p=>p.variety===variety && p.status===2)
+                        .reduce((s,p)=>s+(+p.bags||0),0);
+  // note: productions no longer store bags count — use whDetails sum per warehouse
+  // Actually: fifo is based on bag count in production. Since productions were redesigned
+  // we use a different method: count from whDetails total苔數 as proxy? 
+  // Per original design, the bag deduction is linked to production records.
+  // We keep the original pattern: productions.bags = bag count used.
+  // But new schema removed bags field. Let's derive from whDetails records for that warehouse
+  // linked to this production's warehouse.
+  // Simpler: We'll track bags used via a new field in production: bagCount
+  used = productions.filter(p=>p.variety===variety && p.status===2)
+                    .reduce((s,p)=>s+(+p.bagCount||0),0);
+  return bags.map(b=>{ const u=Math.min(b.qty,used); used=Math.max(0,used-u); return{id:b.id,used:u,remain:b.qty-u}; });
+}
+
+function stockLight(stock, order) {
+  if(stock<order) return '<span style="display:inline-flex;align-items:center;gap:.35rem"><span class="dot-red"></span><span style="color:var(--red);font-size:.75rem;font-family:\'JetBrains Mono\',monospace">不足</span></span>';
+  return '<span style="display:inline-flex;align-items:center;gap:.35rem"><span class="dot-blue"></span><span style="color:var(--cyan);font-size:.75rem;font-family:\'JetBrains Mono\',monospace">充足</span></span>';
+}
+
+function statusCell(status) {
+  if(status===2) return '<span class="status-cell"><span class="light light-red"></span><span style="color:var(--red)">採收結束</span></span>';
+  if(status===1) return '<span class="status-cell"><span class="light light-orange"></span><span style="color:var(--orange)">採收中</span></span>';
+  return '<span class="status-cell"><span class="light light-blue"></span><span style="color:var(--blue)">未採收</span></span>';
+}
+
+function fmtNum(n, dec=2) {
+  if(n===null||n===undefined||isNaN(+n)) return '—';
+  return (+n).toFixed(dec);
+}
+function fmtMoney(n) {
+  return '$'+Math.round(+n||0).toLocaleString();
+}
+
+// ── Tabs ──
+function switchTab(t) {
+  ['overview','material','production','bagmaking','orders'].forEach(k=>{
+    document.getElementById('panel-'+k).classList.toggle('active',k===t);
+    document.getElementById('tab-'+k).classList.toggle('active',k===t);
+  });
+  if(t==='overview')   renderOv();
+  if(t==='material')   renderMat();
+  if(t==='production') renderProd();
+  if(t==='bagmaking')  renderBag();
+  if(t==='orders')     renderOrders();
+}
+
+// ── Overview ──
+function renderOv() {
+  const fm={};
+  [...new Set(bagRecords.map(b=>b.variety))].forEach(v=>fifo(v).forEach(f=>{fm[f.id]=f;}));
+  const tM=bagRecords.reduce((s,r)=>s+r.qty,0);
+  const tU=bagRecords.reduce((s,b)=>s+(fm[b.id]?.used||0),0);
+  const tL=Math.max(0,tM-tU);
+  const lowMats=materials.filter(m=>m.stock<m.order);
+
+  document.getElementById('ov-cards').innerHTML=`
+    <div class="card"><div class="card-lbl">TOTAL MATERIALS</div><div class="card-val">${materials.length}<span class="cu">種</span></div><div class="card-sub">管理中</div></div>
+    <div class="card"><div class="card-lbl">制包總量</div><div class="card-val">${tM}<span class="cu">包</span></div><div class="card-sub">${bagRecords.length} 批次</div></div>
+    <div class="card"><div class="card-lbl">已用於生產</div><div class="card-val c">${tU}<span class="cu">包</span></div><div class="card-sub">${productions.length} 筆</div></div>
+    <div class="card cg"><div class="card-lbl">剩餘可用</div><div class="card-val g">${tL}<span class="cu">包</span></div><div class="card-sub">未投入生產</div></div>
+  `;
+  const alertEl=document.getElementById('ov-alert');
+  if(lowMats.length>0){
+    alertEl.innerHTML=`<div class="alert-panel"><div class="alert-title">⚠ 原物料庫存不足警示（${lowMats.length} 項）</div>${lowMats.map(m=>`<div class="alert-item"><span class="dot-red"></span><span><b>${m.name}</b></span><span style="color:var(--tx3);font-size:.78rem">現存 <span style="color:var(--red);font-weight:700">${m.stock} ${m.unit}</span> ／ 叫料 ${m.order} ${m.unit}</span></div>`).join('')}</div>`;
+  } else { alertEl.innerHTML=''; }
+
+  document.getElementById('inv-list').innerHTML=materials.map(m=>{
+    const pct=Math.min((m.stock/500)*100,100);
+    const bc=m.stock<m.order?'fr':'fg';
+    return`<div class="inv-row"><div class="inv-name">${m.name}</div><div class="inv-bar-wrap"><div class="inv-bar-bg"><div class="inv-bar-fill ${bc}" style="width:${pct}%"></div></div></div><div class="inv-nums"><span>${m.stock} ${m.unit}</span></div></div>`;
+  }).join('')||'<div class="empty-state"><div class="empty-icon">◻</div>尚無資料</div>';
+}
+
+// ── Material ──
+function renderMat() {
+  const q=(document.getElementById('mat-search')?.value||'').toLowerCase();
+  const rows=materials.filter(m=>m.name.toLowerCase().includes(q));
+  const tb=document.getElementById('mat-tbody');
+  if(!rows.length){tb.innerHTML='<tr><td colspan="8"><div class="empty-state"><div class="empty-icon">▦</div>無符合資料</div></td></tr>';return;}
+  tb.innerHTML=rows.map((m,i)=>`<tr>
+    <td class="mn">${i+1}</td><td><b>${m.name}</b></td>
+    <td class="mn">${m.stock}</td><td class="mn">${m.unit}</td>
+    <td class="mn" style="color:var(--cyan)">${m.order}</td>
+    <td>${stockLight(m.stock,m.order)}</td>
+    <td style="color:var(--tx3);font-size:.8rem">${m.note||'—'}</td>
+    <td><div style="display:flex;gap:.3rem">
+      <button class="btn btn-g btn-sm" onclick="openMatModal(${m.id})">✏️ 編輯</button>
+      <button class="btn btn-d btn-sm" onclick="delMat(${m.id})">刪除</button>
+    </div></td>
+  </tr>`).join('');
+}
+function openMatModal(id=null) {
+  eM=id;
+  if(id){const m=materials.find(x=>x.id===id);document.getElementById('m-title').textContent='編輯原物料';document.getElementById('m-name').value=m.name;document.getElementById('m-stock').value=m.stock;document.getElementById('m-unit').value=m.unit;document.getElementById('m-order').value=m.order;document.getElementById('m-note').value=m.note;}
+  else{document.getElementById('m-title').textContent='新增原物料';['m-name','m-stock','m-order','m-note'].forEach(x=>document.getElementById(x).value='');document.getElementById('m-unit').value='公斤';}
+  document.getElementById('modal-mat').classList.add('show');
+}
+function saveMat() {
+  const name=document.getElementById('m-name').value.trim();if(!name)return alert('請輸入名稱');
+  const o={id:eM||++matSeq,name,stock:+(document.getElementById('m-stock').value)||0,unit:document.getElementById('m-unit').value,order:+(document.getElementById('m-order').value)||0,note:document.getElementById('m-note').value.trim()};
+  if(eM){const i=materials.findIndex(x=>x.id===eM);materials[i]=o;}else materials.push(o);
+  closeModal('modal-mat');renderMat();renderOv();
+}
+function delMat(id){if(!confirm('確定刪除？'))return;materials=materials.filter(x=>x.id!==id);renderMat();renderOv();}
+
+// ── Production ──
+function renderProd() {
+  const q=(document.getElementById('prod-search')?.value||'').toLowerCase();
+  const rows=productions.filter(p=>p.variety.toLowerCase().includes(q)||((p.warehouse||'').toLowerCase().includes(q)));
+  const tb=document.getElementById('prod-tbody');
+  if(!rows.length){tb.innerHTML='<tr><td colspan="13"><div class="empty-state"><div class="empty-icon">▶</div>無符合資料</div></td></tr>';return;}
+  tb.innerHTML=rows.map((p,i)=>{
+    const d1=dateDiff(p.openDate,p.inoc1);
+    const d2=dateDiff(p.openDate,p.inoc2);
+    const d3=dateDiff(p.openDate,p.inoc3);
+    const isNumWH=/^\d+庫$/.test(p.warehouse);
+    const whCell=isNumWH
+      ?`<span class="wh-link" onclick="openWarehouse('${p.warehouse}')">${p.warehouse}</span>`
+      :`<span style="color:var(--cyan);font-weight:600">${p.warehouse||'—'}</span>`;
+    return`<tr>
+      <td class="mn">${i+1}</td>
+      <td>${whCell}</td>
+      <td><b>${p.variety}</b></td>
+      <td class="mn">${fmt(p.openDate)}</td>
+      <td class="mn">${fmt(p.harvestDate)}</td>
+      <td class="mn">${fmt(p.inoc1)}</td>
+      <td class="mn">${fmt(p.inoc2)}</td>
+      <td class="mn">${fmt(p.inoc3)}</td>
+      <td class="mn" style="color:var(--green)">${d1!==null?d1+'天':'—'}</td>
+      <td class="mn" style="color:var(--green)">${d2!==null?d2+'天':'—'}</td>
+      <td class="mn" style="color:var(--green)">${d3!==null?d3+'天':'—'}</td>
+      <td>${statusCell(p.status)}</td>
+      <td><div style="display:flex;gap:.3rem">
+        <button class="btn btn-g btn-sm" onclick="openProdModal(${p.id})">✏️</button>
+        <button class="btn btn-d btn-sm" onclick="delProd(${p.id})">刪除</button>
+      </div></td>
+    </tr>`;
+  }).join('');
+}
+
+function syncWHfromSel() {
+  const v=document.getElementById('p-warehouse-sel').value;
+  if(v==='__custom__'){document.getElementById('p-warehouse').value='';document.getElementById('p-warehouse').focus();}
+  else if(v) document.getElementById('p-warehouse').value=v;
+  else document.getElementById('p-warehouse').value='';
+}
+function syncWHfromText() {
+  const txt=document.getElementById('p-warehouse').value;
+  const sel=document.getElementById('p-warehouse-sel');
+  const opts=[...sel.options].map(o=>o.value);
+  sel.value=opts.includes(txt)?txt:'__custom__';
+}
+function calcDays() {
+  const open=document.getElementById('p-openDate').value;
+  ['1','2','3'].forEach(n=>{
+    const d=dateDiff(open,document.getElementById('p-inoc'+n).value);
+    document.getElementById('p-days'+n).textContent=d!==null?d+'天':'—';
+  });
+}
+function openProdModal(id=null) {
+  eP=id;
+  if(id){
+    const p=productions.find(x=>x.id===id);
+    document.getElementById('p-title').textContent='編輯生產紀錄';
+    document.getElementById('p-warehouse').value=p.warehouse||'';
+    document.getElementById('p-warehouse-sel').value=/^\d+庫$/.test(p.warehouse)?(p.warehouse||''):'__custom__';
+    document.getElementById('p-variety').value=p.variety;
+    document.getElementById('p-openDate').value=p.openDate||'';
+    document.getElementById('p-harvestDate').value=p.harvestDate||'';
+    document.getElementById('p-inoc1').value=p.inoc1||'';
+    document.getElementById('p-inoc2').value=p.inoc2||'';
+    document.getElementById('p-inoc3').value=p.inoc3||'';
+    document.getElementById('p-status').value=p.status||0;
+  } else {
+    document.getElementById('p-title').textContent='新增生產紀錄';
+    ['p-warehouse','p-variety','p-openDate','p-harvestDate','p-inoc1','p-inoc2','p-inoc3'].forEach(x=>document.getElementById(x).value='');
+    document.getElementById('p-warehouse-sel').value='';
+    document.getElementById('p-status').value=0;
+  }
+  calcDays();
+  document.getElementById('modal-prod').classList.add('show');
+}
+function saveProd() {
+  const variety=document.getElementById('p-variety').value.trim();if(!variety)return alert('請輸入品種');
+  const o={
+    id:eP||++prodSeq,
+    warehouse:document.getElementById('p-warehouse').value.trim(),
+    variety,
+    openDate:document.getElementById('p-openDate').value,
+    harvestDate:document.getElementById('p-harvestDate').value,
+    inoc1:document.getElementById('p-inoc1').value,
+    inoc2:document.getElementById('p-inoc2').value,
+    inoc3:document.getElementById('p-inoc3').value,
+    status:+(document.getElementById('p-status').value)||0,
+    bagCount: eP ? (productions.find(x=>x.id===eP)?.bagCount||0) : 0,
+  };
+  if(eP){const i=productions.findIndex(x=>x.id===eP);productions[i]=o;}else productions.push(o);
+  closeModal('modal-prod');renderProd();renderBag();
+}
+function delProd(id){if(!confirm('確定刪除？'))return;productions=productions.filter(x=>x.id!==id);renderProd();renderBag();}
+
+// ── Bag Making ──
+function renderBag() {
+  const q=(document.getElementById('bag-search')?.value||'').toLowerCase();
+  const rows=bagRecords.filter(b=>b.variety.toLowerCase().includes(q));
+  const tb=document.getElementById('bag-tbody');
+  const fm={};
+  [...new Set(bagRecords.map(b=>b.variety))].forEach(v=>fifo(v).forEach(f=>{fm[f.id]=f;}));
+  if(!rows.length){tb.innerHTML='<tr><td colspan="9"><div class="empty-state"><div class="empty-icon">◈</div>無符合資料</div></td></tr>';return;}
+  tb.innerHTML=rows.map((b,i)=>{
+    const f=fm[b.id]||{used:0,remain:b.qty};
+    const pct=b.qty?Math.min((f.used/b.qty)*100,100):0;
+    const rc=f.remain===0?'rem-zero':f.remain<b.qty*.2?'rem-warn':'rem-ok';
+    // 已用於生產：等於0 → 僅顯示紅燈，不顯示數字
+    const usedCell = f.used===0
+      ? `<span class="light light-red" title="尚未使用"></span>`
+      : `<div style="display:flex;align-items:center;gap:.4rem"><span class="mn" style="color:var(--amber)">${f.used}</span><div class="prog-bar" style="width:3.5rem"><div class="prog-fill fa" style="width:${pct}%"></div></div></div>`;
+    return`<tr>
+      <td class="mn">${i+1}</td>
+      <td><b>${b.variety}</b></td>
+      <td class="mn">${fmt(b.inocuDate)}</td>
+      <td class="mn" style="color:var(--cyan);font-weight:700">${b.qty}</td>
+      <td><span class="rem ${rc}">${f.remain} 包</span></td>
+      <td>${usedCell}</td>
+      <td class="mn" style="color:var(--tx2)">${b.sawdust||'—'}</td>
+      <td style="color:var(--tx3);font-size:.8rem">${b.note||'—'}</td>
+      <td><div style="display:flex;gap:.3rem">
+        <button class="btn btn-g btn-sm" onclick="openBagModal(${b.id})">✏️</button>
+        <button class="btn btn-d btn-sm" onclick="delBag(${b.id})">刪除</button>
+      </div></td>
+    </tr>`;
+  }).join('');
+  const tM=bagRecords.reduce((s,r)=>s+r.qty,0);
+  const tU=bagRecords.reduce((s,b)=>s+(fm[b.id]?.used||0),0);
+  document.getElementById('flow-stats').innerHTML=`
+    <div><div class="fsv" style="color:var(--cyan)">${tM}</div><div class="fsl">制包總量</div></div>
+    <div><div class="fsv" style="color:var(--amber)">${tU}</div><div class="fsl">已用於生產</div></div>
+    <div><div class="fsv" style="color:var(--green)">${Math.max(0,tM-tU)}</div><div class="fsl">剩餘可用</div></div>
+  `;
+}
+function openBagModal(id=null) {
+  eB=id;
+  if(id){const b=bagRecords.find(x=>x.id===id);document.getElementById('b-title').textContent='編輯制包紀錄';document.getElementById('b-variety').value=b.variety;document.getElementById('b-qty').value=b.qty;document.getElementById('b-inocu').value=b.inocuDate||'';document.getElementById('b-sawdust').value=b.sawdust||'';document.getElementById('b-note').value=b.note;}
+  else{document.getElementById('b-title').textContent='新增制包紀錄';['b-variety','b-qty','b-inocu','b-sawdust','b-note'].forEach(x=>document.getElementById(x).value='');}
+  document.getElementById('modal-bag').classList.add('show');
+}
+function saveBag() {
+  const variety=document.getElementById('b-variety').value.trim();if(!variety)return alert('請輸入品種');
+  const o={id:eB||++bagSeq,variety,qty:+(document.getElementById('b-qty').value)||0,inocuDate:document.getElementById('b-inocu').value,sawdust:+(document.getElementById('b-sawdust').value)||0,note:document.getElementById('b-note').value.trim()};
+  if(eB){const i=bagRecords.findIndex(x=>x.id===eB);bagRecords[i]=o;}else bagRecords.push(o);
+  closeModal('modal-bag');renderBag();
+}
+function delBag(id){if(!confirm('確定刪除？'))return;bagRecords=bagRecords.filter(x=>x.id!==id);renderBag();}
+
+// ── Warehouse Detail Sub-page ──
+function openWarehouse(wh) {
+  currentWarehouse=wh;
+  document.getElementById('sub-wh-title').textContent=wh+' — 採菇詳細資料';
+  renderWhDetail();
+  document.getElementById('sub-warehouse').classList.add('show');
+}
+function closeWarehouse() {
+  document.getElementById('sub-warehouse').classList.remove('show');
+}
+function renderWhDetail() {
+  const rows=whDetails.filter(w=>w.warehouse===currentWarehouse);
+  const tb=document.getElementById('sub-wh-tbody');
+
+  const tot   =rows.reduce((s,r)=>s+(+r.total||0),0);
+  const totA  =rows.reduce((s,r)=>s+(+r.a||0),0);
+  const totB  =rows.reduce((s,r)=>s+(+r.b||0),0);
+  const totT  =rows.reduce((s,r)=>s+(+r.t200||0),0);
+  const totO  =rows.reduce((s,r)=>s+(+r.o200||0),0);
+  // A佔比: (A + 傳統200g包*0.2/16 + 有機200g包*0.2/16) / 產出苔數
+  const aEq   =totA+(totT*0.2/16)+(totO*0.2/16);
+  const aPct  =tot>0?(aEq/tot*100):0;
+  // B佔比: B*3 / 產出苔數
+  const bPct  =tot>0?(totB*3/tot*100):0;
+
+  document.getElementById('sub-wh-cards').innerHTML=`
+    <div class="wh-card"><div class="wh-card-label">產出苔數</div><div class="wh-card-val">${fmtNum(tot,1)}</div></div>
+    <div class="wh-card"><div class="wh-card-label">A級（kg）</div><div class="wh-card-val" style="color:var(--green)">${fmtNum(totA,1)}</div></div>
+    <div class="wh-card"><div class="wh-card-label">B級（kg）</div><div class="wh-card-val" style="color:var(--amber)">${fmtNum(totB,1)}</div></div>
+    <div class="wh-card"><div class="wh-card-label">傳統200g（包）</div><div class="wh-card-val" style="color:var(--cyan)">${totT}</div></div>
+    <div class="wh-card"><div class="wh-card-label">有機200g（包）</div><div class="wh-card-val" style="color:var(--cyan)">${totO}</div></div>
+    <div class="wh-card cg"><div class="wh-card-label">A佔比</div><div class="wh-card-val" style="color:var(--green)">${fmtNum(aPct,1)}%</div><div class="pct-bar"><div class="pct-fill" style="width:${Math.min(aPct,100).toFixed(1)}%"></div></div></div>
+    <div class="wh-card ca"><div class="wh-card-label">B佔比</div><div class="wh-card-val" style="color:var(--amber)">${fmtNum(bPct,1)}%</div><div class="pct-bar"><div class="pct-fill" style="width:${Math.min(bPct,100).toFixed(1)}%;background:var(--amber)"></div></div></div>
+  `;
+
+  if(!rows.length){tb.innerHTML='<tr><td colspan="9"><div class="empty-state"><div class="empty-icon">🍄</div>尚無採菇紀錄</div></td></tr>';return;}
+  tb.innerHTML=rows.map((r,i)=>{
+    const aK=(+r.a||0)+((+r.t200||0)*0.2/16)+((+r.o200||0)*0.2/16);
+    const rTot=+r.total||0;
+    const ap=rTot>0?(aK/rTot*100).toFixed(1)+'%':'—';
+    const bp=rTot>0?((+r.b||0)*3/rTot*100).toFixed(1)+'%':'—';
+    return`<tr>
+      <td class="mn">${i+1}</td>
+      <td class="mn" style="color:var(--ttl)">${fmtNum(r.total,1)}</td>
+      <td class="mn" style="color:var(--green)">${fmtNum(r.a,1)}</td>
+      <td class="mn" style="color:var(--amber)">${fmtNum(r.b,1)}</td>
+      <td class="mn" style="color:var(--cyan)">${r.t200}</td>
+      <td class="mn" style="color:var(--cyan)">${r.o200}</td>
+      <td class="mn" style="color:var(--green)">${ap}</td>
+      <td class="mn" style="color:var(--amber)">${bp}</td>
+      <td><div style="display:flex;gap:.3rem">
+        <button class="btn btn-g btn-sm" onclick="openWhDetailModal(${r.id})">✏️</button>
+        <button class="btn btn-d btn-sm" onclick="delWhDetail(${r.id})">刪除</button>
+      </div></td>
+    </tr>`;
+  }).join('');
+}
+function calcWhRatios() {
+  const total=+(document.getElementById('wd-total').value)||0;
+  const a=+(document.getElementById('wd-a').value)||0;
+  const b=+(document.getElementById('wd-b').value)||0;
+  const t200=+(document.getElementById('wd-t200').value)||0;
+  const o200=+(document.getElementById('wd-o200').value)||0;
+  const aEq=a+(t200*0.2/16)+(o200*0.2/16);
+  document.getElementById('wd-apct').textContent=total>0?(aEq/total*100).toFixed(1)+'%':'—';
+  document.getElementById('wd-bpct').textContent=total>0?(b*3/total*100).toFixed(1)+'%':'—';
+}
+function openWhDetailModal(id=null) {
+  eWD=id;
+  if(id){
+    const r=whDetails.find(x=>x.id===id);
+    document.getElementById('wd-title').textContent='編輯採菇記錄';
+    document.getElementById('wd-total').value=r.total;
+    document.getElementById('wd-a').value=r.a;
+    document.getElementById('wd-b').value=r.b;
+    document.getElementById('wd-t200').value=r.t200;
+    document.getElementById('wd-o200').value=r.o200;
+  } else {
+    document.getElementById('wd-title').textContent='新增採菇記錄';
+    ['wd-total','wd-a','wd-b','wd-t200','wd-o200'].forEach(x=>document.getElementById(x).value='');
+  }
+  calcWhRatios();
+  document.getElementById('modal-wh-detail').classList.add('show');
+}
+function saveWhDetail() {
+  const o={
+    id:eWD||++whdSeq, warehouse:currentWarehouse,
+    total:+(document.getElementById('wd-total').value)||0,
+    a:+(document.getElementById('wd-a').value)||0,
+    b:+(document.getElementById('wd-b').value)||0,
+    t200:+(document.getElementById('wd-t200').value)||0,
+    o200:+(document.getElementById('wd-o200').value)||0
+  };
+  if(eWD){const i=whDetails.findIndex(x=>x.id===eWD);whDetails[i]=o;}else whDetails.push(o);
+  closeModal('modal-wh-detail');renderWhDetail();
+}
+function delWhDetail(id){if(!confirm('確定刪除？'))return;whDetails=whDetails.filter(x=>x.id!==id);renderWhDetail();}
+
+// ── Orders ──
+function calcOrderTotal() {
+  const aQ=+(document.getElementById('or-a-qty').value)||0;
+  const aP=+(document.getElementById('or-a-price').value)||0;
+  const bQ=+(document.getElementById('or-b-qty').value)||0;
+  const bP=+(document.getElementById('or-b-price').value)||0;
+  const tQ=+(document.getElementById('or-t200-qty').value)||0;
+  const tP=+(document.getElementById('or-t200-price').value)||0;
+  const oQ=+(document.getElementById('or-o200-qty').value)||0;
+  const oP=+(document.getElementById('or-o200-price').value)||0;
+  // 貨款 = A級(包)×單價 + (B級*3)×單價 + 傳統200g×單價 + 有機200g×單價
+  const total=aQ*aP+(bQ*3)*bP+tQ*tP+oQ*oP;
+  document.getElementById('or-total').textContent=fmtMoney(total);
+  return total;
+}
+function openOrderModal(id=null) {
+  eOR=id;
+  if(id){
+    const r=orderRecords.find(x=>x.id===id);
+    document.getElementById('or-title').textContent='編輯出貨訂單';
+    document.getElementById('or-dealer').value=r.dealer||'';
+    document.getElementById('or-date').value=r.date||'';
+    document.getElementById('or-warehouse').value=r.warehouse||'';
+    document.getElementById('or-a-qty').value=r.aQty||'';
+    document.getElementById('or-a-price').value=r.aPrice||'';
+    document.getElementById('or-b-qty').value=r.bQty||'';
+    document.getElementById('or-b-price').value=r.bPrice||'';
+    document.getElementById('or-t200-qty').value=r.t200Qty||'';
+    document.getElementById('or-t200-price').value=r.t200Price||'';
+    document.getElementById('or-o200-qty').value=r.o200Qty||'';
+    document.getElementById('or-o200-price').value=r.o200Price||'';
+  } else {
+    document.getElementById('or-title').textContent='新增出貨訂單';
+    ['or-dealer','or-a-qty','or-a-price','or-b-qty','or-b-price',
+     'or-t200-qty','or-t200-price','or-o200-qty','or-o200-price'].forEach(x=>document.getElementById(x).value='');
+    document.getElementById('or-date').value=today();
+    document.getElementById('or-warehouse').value='';
+  }
+  calcOrderTotal();
+  document.getElementById('modal-order').classList.add('show');
+}
+function saveOrder() {
+  const dealer=document.getElementById('or-dealer').value.trim();
+  if(!dealer)return alert('請輸入大盤商');
+  const total=calcOrderTotal();
+  const o={
+    id:eOR||++ordSeq, dealer,
+    date:document.getElementById('or-date').value,
+    warehouse:document.getElementById('or-warehouse').value,
+    aQty:+(document.getElementById('or-a-qty').value)||0,
+    aPrice:+(document.getElementById('or-a-price').value)||0,
+    bQty:+(document.getElementById('or-b-qty').value)||0,
+    bPrice:+(document.getElementById('or-b-price').value)||0,
+    t200Qty:+(document.getElementById('or-t200-qty').value)||0,
+    t200Price:+(document.getElementById('or-t200-price').value)||0,
+    o200Qty:+(document.getElementById('or-o200-qty').value)||0,
+    o200Price:+(document.getElementById('or-o200-price').value)||0,
+    total
+  };
+  if(eOR){const i=orderRecords.findIndex(x=>x.id===eOR);orderRecords[i]=o;}else orderRecords.push(o);
+  closeModal('modal-order');renderOrders();
+}
+function delOrder(id){if(!confirm('確定刪除？'))return;orderRecords=orderRecords.filter(x=>x.id!==id);renderOrders();}
+
+function getPeriodLabel(dateStr){
+  if(!dateStr)return'未知日期';
+  const d=new Date(dateStr);
+  return`${d.getMonth()+1}月${d.getDate()<=15?'上':'下'}`;
+}
+function getPeriodKey(dateStr){
+  if(!dateStr)return'0000-00-X';
+  const d=new Date(dateStr);
+  return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${d.getDate()<=15?'1':'2'}`;
+}
+
+function renderOrders() {
+  const q=(document.getElementById('order-search')?.value||'').toLowerCase();
+  const rows=orderRecords.filter(r=>r.dealer.toLowerCase().includes(q)||((r.warehouse||'').toLowerCase().includes(q)));
+  const container=document.getElementById('orders-container');
+
+  if(!rows.length){
+    container.innerHTML='<div class="empty-state"><div class="empty-icon">📦</div>尚無出貨紀錄</div>';
+    return;
+  }
+
+  const groups={}, gOrder=[];
+  [...rows].sort((a,b)=>(a.date||'').localeCompare(b.date||'')).forEach(r=>{
+    const k=getPeriodKey(r.date);
+    if(!groups[k]){groups[k]={label:getPeriodLabel(r.date),rows:[],total:0};gOrder.push(k);}
+    groups[k].rows.push(r);
+    groups[k].total+=+r.total||0;
+  });
+
+  container.innerHTML=gOrder.map(k=>{
+    const g=groups[k];
+    const trs=g.rows.map((r,i)=>`<tr>
+      <td class="mn">${i+1}</td>
+      <td><b>${r.dealer}</b></td>
+      <td class="mn">${fmt(r.date)}</td>
+      <td class="mn" style="color:var(--cyan)">${r.warehouse||'—'}</td>
+      <td class="mn">${r.aQty||'—'}</td>
+      <td class="mn" style="color:var(--tx2)">${r.aPrice?'$'+r.aPrice:'—'}</td>
+      <td class="mn">${r.bQty||'—'}</td>
+      <td class="mn" style="color:var(--tx2)">${r.bPrice?'$'+r.bPrice:'—'}</td>
+      <td class="mn">${r.t200Qty||'—'}</td>
+      <td class="mn" style="color:var(--tx2)">${r.t200Price?'$'+r.t200Price:'—'}</td>
+      <td class="mn">${r.o200Qty||'—'}</td>
+      <td class="mn" style="color:var(--tx2)">${r.o200Price?'$'+r.o200Price:'—'}</td>
+      <td class="mn" style="color:var(--green);font-weight:700">${fmtMoney(r.total)}</td>
+      <td><div style="display:flex;gap:.3rem">
+        <button class="btn btn-g btn-sm" onclick="openOrderModal(${r.id})">✏️</button>
+        <button class="btn btn-d btn-sm" onclick="delOrder(${r.id})">刪除</button>
+      </div></td>
+    </tr>`).join('');
+    return`<div class="billing-group">
+      <div class="billing-header">
+        <span class="billing-period">📅 ${g.label} 共 ${g.rows.length} 筆</span>
+        <span class="billing-total">結算合計：${fmtMoney(g.total)}</span>
+      </div>
+      <div class="table-wrap" style="margin-bottom:0;border:none;border-radius:0">
+        <table style="min-width:960px">
+          <thead><tr>
+            <th>#</th><th>大盤商</th><th>載貨日期</th><th>庫號</th>
+            <th>A級(包)</th><th>A單價</th><th>B級(kg)</th><th>B單價</th>
+            <th>傳統200g</th><th>傳統單價</th><th>有機200g</th><th>有機單價</th>
+            <th>貨款</th><th>操作</th>
+          </tr></thead>
+          <tbody>${trs}</tbody>
+        </table>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── Modal helpers ──
+function closeModal(id){document.getElementById(id).classList.remove('show');}
+document.querySelectorAll('.modal-overlay').forEach(o=>{
+  o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('show');});
+});
+
+// ── Clock ──
+function tick(){const n=new Date();document.getElementById('clock').textContent=n.toLocaleDateString('zh-TW')+' '+n.toLocaleTimeString('zh-TW');}
+setInterval(tick,1000);tick();
+
+renderOv();
+</script>
+</body>
+</html>
